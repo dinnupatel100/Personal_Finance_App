@@ -44,7 +44,7 @@ func createTables() {
 	createCategoryTable := `
 		CREATE TABLE IF NOT EXISTS category(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			category_name TEXT NOT NULL,
+			category_name TEXT NOT NULL UNIQUE,
 			FOREIGN KEY(id) REFERENCES users(id)
 		)
 	`
@@ -57,11 +57,12 @@ func createTables() {
 	createTransactionTable := `
 		CREATE TABLE IF NOT EXISTS transactions(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			date TEXT NOT NULL,
-			amount TEXT NOT NULL,
+			date DATE NOT NULL,
+			amount BIGINT NOT NULL,
 			category TEXT NOT NULL,
+			tag TEXT NOT NULL,
 			description TEXT NOT NULL,
-			transaction_id INTEGER,
+			transaction_id INTEGER UNIQUE,
 			FOREIGN KEY(id) REFERENCES users(id)
 		)
 	`

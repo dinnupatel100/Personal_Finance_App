@@ -19,5 +19,5 @@ func main() {
 	api.RegisteredRoutes(mux, interfaceGotFromServiceLayer)
 
 	fmt.Println("Server Started...")
-	log.Fatal(http.ListenAndServe(":8000", mux))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

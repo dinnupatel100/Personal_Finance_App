@@ -1,29 +1,40 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/personal-finance-app/internal/app"
+	"github.com/personal-finance-app/middleware"
 )
 
 func RegisteredRoutes(router *mux.Router, service app.Service) {
 
 	// User
-	router.HandleFunc("/signup", signup(service)).Methods("POST")
-	router.HandleFunc("/login", login(service)).Methods("POST")
+	router.HandleFunc("/signup", signup(service)).Methods(http.MethodPost)
+	router.HandleFunc("/login", login(service)).Methods(http.MethodPost)
+
+	authRoute := router.PathPrefix("/api").Subrouter()
+	authRoute.Use(middleware.Authorization)
+
+	// category
+	authRoute.HandleFunc("/addcategory", addCategory(service)).Methods(http.MethodPost)
+
+	// search
+	authRoute.HandleFunc("/search", searchTransaction(service)).Methods(http.MethodGet)
 
 	// Transaction
-	router.HandleFunc("/addtransaction", addTransaction(service)).Methods("POST")
-	router.HandleFunc("/updatetransaction", updateTransaction(service)).Methods("PUT")
-	router.HandleFunc("/deletetransaction", deleteTransaction(service)).Methods("DELETE")
-	router.HandleFunc("/getalltransaction", getAllTransactions(service)).Methods("GET")
-	router.HandleFunc("/getonetransaction", getTransaction(service)).Methods("GET")
+	authRoute.HandleFunc("/addtransaction", addTransaction(service)).Methods("POST")
+	authRoute.HandleFunc("/updatetransaction", updateTransaction(service)).Methods(http.MethodPut)
+	authRoute.HandleFunc("/deletetransaction", deleteTransaction(service)).Methods("DELETE")
+	authRoute.HandleFunc("/getalltransaction", getAllTransactions(service)).Methods("GET")
+	authRoute.HandleFunc("/getonetransaction", getTransaction(service)).Methods("GET")
 
 	//Budget
-	router.HandleFunc("/addbudget", addBudget(service)).Methods("POST")
-	router.HandleFunc("/getallbudget", getAllBudget(service)).Methods("GET")
-	router.HandleFunc("/pendingbudget", pendingBudget(service)).Methods("GET")
-	router.HandleFunc("/deletebudget", deleteBudget(service)).Methods("DELETE")
-	router.HandleFunc("/updatebudget", updateBudget(service)).Methods("PUT")
+	authRoute.HandleFunc("/addbudget", addBudget(service)).Methods("POST")
+	authRoute.HandleFunc("/getallbudget", getAllBudget(service)).Methods("GET")
+	authRoute.HandleFunc("/pendingbudget", pendingBudget(service)).Methods("GET")
+	authRoute.HandleFunc("/deletebudget", deleteBudget(service)).Methods("DELETE")
+	authRoute.HandleFunc("/updatebudget", updateBudget(service)).Methods("PUT")
 
 }
-f

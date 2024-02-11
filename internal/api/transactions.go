@@ -10,13 +10,13 @@ import (
 )
 
 // POST Reuqest
-func addTransaction(service app.Service) http.HandlerFunc {
+func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		var transaction app.Transaction
 		err := json.NewDecoder(r.Body).Decode(&transaction)
 
 		if err != nil {
-			fmt.Println("err", err)
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
@@ -24,85 +24,80 @@ func addTransaction(service app.Service) http.HandlerFunc {
 		err = service.AddTransaction(transaction)
 
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			Response(w, http.StatusBadRequest, Message{Msg: UniqueError})
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: "Transaction created successfull"})
+		Response(w, http.StatusBadRequest, Message{Msg: Create})
 	}
-
-	// w.Write([]byte(transaction))
 
 }
 
 func updateTransaction(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id") // query parameter
-
-		// transactionId := context.GetInt64("transactionId")
-		// transaction, err := app.GetTransactionById(value)
-
-		// if err != nil {
-		// 	Response(w , http.StatusBadRequest , Message{Msg: err.Error()})
-		// 	return
-		// }
-
-		// if transaction.TransactionID != transactionId {
-		// 	context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorised to update transction you tried with different event"})
-		// 	return
-		// }
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			Response(w, http.StatusNotFound, QueryNotFoundError)
+			return
+		}
 
 		var updatedTransaction app.Transaction
 
 		err := json.NewDecoder(r.Body).Decode(&updatedTransaction)
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not parse the request data into json"})
+			Response(w, http.StatusBadRequest, RequestError)
 			return
 		}
 
 		updatedTransaction.ID, err = strconv.ParseInt(id, 10, 64)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Cannot convert the string"})
+			fmt.Println(err)
+			Response(w, http.StatusBadRequest, RequestError)
+			return
 		}
 
 		err = service.UpdateTransaction(updatedTransaction)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not update the transaction"})
+			fmt.Println(err)
+			Response(w, http.StatusBadRequest, UpdateError)
 			return
 		}
 
-		Response(w, http.StatusOK, Message{Msg: "Update Transaction successfully"})
+		Response(w, http.StatusOK, Update)
 	}
 
 }
 
 func deleteTransaction(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id") // query parameter
 
-		// transactionId := context.GetInt64("transactionId")
-		i, err := strconv.ParseInt(id, 10, 64)
-		transaction, err := service.GetTransactionById(i)
-
-		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not fetch the transaction"})
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			Response(w, http.StatusNotFound, QueryNotFoundError)
 			return
 		}
 
-		// if transaction.TransactionID != transactionId {
-		// 	context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorised to update transction you tried with different event"})
-		// 	return
-		// }
+		i, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			Response(w, http.StatusBadRequest, RequestError)
+		}
+
+		transaction, err := service.GetTransactionById(i)
+
+		if err != nil {
+			Response(w, http.StatusBadRequest, FetchingError)
+			return
+		}
 
 		err = service.DeleteTransaction(app.Transaction(*transaction))
 
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not delete transaction"})
+			Response(w, http.StatusBadRequest, Message{Msg: DeleteError})
 			return
 		}
 
-		Response(w, http.StatusOK, Message{Msg: "Transaction deleted successfully"})
+		Response(w, http.StatusOK, Delete)
 	}
 
 }
@@ -111,12 +106,12 @@ func getAllTransactions(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		transactions, err := service.GetAllTransactions()
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not fetch the transaction"})
+			Response(w, http.StatusBadRequest, FetchingError)
 			return
 		}
 		jsonData, err := json.MarshalIndent(transactions, " ", "\t")
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not convert into json"})
+			Response(w, http.StatusBadRequest, RequestError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -127,18 +122,21 @@ func getAllTransactions(service app.Service) http.HandlerFunc {
 
 func getTransaction(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// paramStr, ok := context.Params.Get("category")
-		category := r.URL.Query().Get("category") // query parameter
+		category := r.URL.Query().Get("category")
+		if category == "" {
+			Response(w, http.StatusNotFound, QueryNotFoundError)
+			return
+		}
 
 		transction, err := service.GetTransactionByCategory(category)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not fetch the transaction"})
+			Response(w, http.StatusBadRequest, FetchingError)
 			return
 		}
 
 		jsonData, err := json.MarshalIndent(transction, " ", "\t")
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Could not convert into the json"})
+			Response(w, http.StatusBadRequest, RequestError)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(jsonData))

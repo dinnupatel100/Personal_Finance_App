@@ -12,7 +12,7 @@ func NewService(str db.Storer) Service {
 }
 
 func (s *service) Signup(u User) error {
-	user := User{
+	user := domain.User{
 		ID:        u.ID,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
@@ -20,7 +20,7 @@ func (s *service) Signup(u User) error {
 		Password:  u.Password,
 	}
 
-	return s.store.Signup(domain.User(user))
+	return s.store.Signup(user)
 }
 
 func (s *service) Login(l Login) error {
@@ -30,6 +30,10 @@ func (s *service) Login(l Login) error {
 		Password: l.Password,
 	}
 	return s.store.ValidateCredential(domain.Login(login))
+}
+
+func (s *service) Search(tag string) ([]domain.Transaction, error) {
+	return s.store.Search(tag)
 }
 
 func (s *service) AddBudget(b Budget) error {
@@ -43,6 +47,15 @@ func (s *service) AddBudget(b Budget) error {
 	}
 
 	return s.store.AddBudget(addBudget)
+}
+
+func (s *service) AddCategory(c Category) error {
+	addCategory := domain.Category{
+		ID:           c.ID,
+		CategoryName: c.CategoryName,
+	}
+
+	return s.store.AddCategory(addCategory)
 }
 
 func (s *service) GetAllBudgets() ([]domain.Budget, error) {
@@ -91,6 +104,7 @@ func (s *service) AddTransaction(t Transaction) error {
 		Date:          t.Date,
 		Amount:        t.Amount,
 		Category:      t.Category,
+		Tag:           t.Tag,
 		Description:   t.Description,
 		TransactionID: t.TransactionID,
 	}
@@ -105,6 +119,7 @@ func (s *service) UpdateTransaction(t Transaction) error {
 		Date:          t.Date,
 		Amount:        t.Amount,
 		Category:      t.Category,
+		Tag:           t.Tag,
 		Description:   t.Description,
 		TransactionID: t.TransactionID,
 	}
