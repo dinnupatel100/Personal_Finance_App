@@ -19,7 +19,6 @@ type Storer interface {
 	Search(string) ([]domain.Transaction, error)
 
 	AddCategory(domain.Category) error
-	exisCategory(string) error
 
 	AddBudget(budget domain.Budget) error
 	GetAllBudgets() ([]domain.Budget, error)
@@ -93,25 +92,28 @@ func (s *store) ValidateCredential(u domain.Login) error {
 
 func (s *store) Search(tag string) ([]domain.Transaction, error) {
 	query := "SELECT * FROM transactions WHERE tag = ?"
-	row, err := s.db.Query(query, tag)
+	rows, err := s.db.Query(query, tag)
 	if err != nil {
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var transactions []domain.Transaction
 
-	for row.Next() {
+	for rows.Next() {
 		var transaction domain.Transaction
 
-		err := row.Scan(&transaction.ID, &transaction.Date, &transaction.Amount, &transaction.Category, &transaction.Tag, &transaction.Description, &transaction.TransactionID)
+		err := rows.Scan(&transaction.ID, &transaction.Date, &transaction.Amount, &transaction.Category, &transaction.Tag, &transaction.Description, &transaction.TransactionID)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return nil, errors.New(NoResourseFound)
-			}
 			return nil, err
 		}
 
 		transactions = append(transactions, transaction)
+	}
+
+	if len(transactions) == 0 {
+		return nil, errors.New(NoResourseFound)
 	}
 
 	return transactions, nil
@@ -150,27 +152,39 @@ func (s *store) AddCategory(c domain.Category) error {
 
 }
 
-func (s *store) exisCategory(category string) error {
-	query := "SELECT COUNT(*) FROM category WHERE category_name = ?"
+func (s *store) AddBudget(b domain.Budget) error {
+	query := "SELECT COUNT(*) FROM budgets WHERE category = ?"
 	var count int
 
-	row := s.db.QueryRow(query, category)
+	row := s.db.QueryRow(query, b.Category)
 	err := row.Scan(&count)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New(NoResourseFound)
+		}
+		return err
+	}
+
+	if count > 0 {
+		return errors.New("category already exists")
+	}
+
+	query = "SELECT COUNT(*) FROM category WHERE category_name = ?"
+
+	row = s.db.QueryRow(query, b.Category)
+	err = row.Scan(&count)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New(NoResourseFound)
+		}
 		return err
 	}
 
 	if count == 0 {
 		return errors.New("category does not exists")
 	}
-	return nil
-}
 
-func (s *store) AddBudget(b domain.Budget) error {
-	if err := s.exisCategory(b.Category); err != nil {
-		return err
-	}
-	query := `INSERT INTO budgets(category , amount , startperiod , endperiod)
+	query = `INSERT INTO budgets(category , amount , startperiod , endperiod)
 	VALUES(?,?,?,?)`
 
 	stmt, err := s.db.Prepare(query)
@@ -245,9 +259,11 @@ func (s *store) DeleteBudget(b domain.Budget) error {
 	}
 
 	if rowsAffected == 0 {
-		return errors.New(NoResourseFound)
+		if err == sql.ErrNoRows {
+			return errors.New(NoResourseFound)
+		}
+		return err
 	}
-
 	return nil
 }
 
@@ -330,6 +346,18 @@ func (s *store) GetBudgetData() (map[string]int64, error) {
 }
 
 func (s *store) UpdateBudget(b domain.Budget) error {
+
+	checkQuery := "SELECT COUNT(*) FROM budgets WHERE id = ?"
+	checkRow := s.db.QueryRow(checkQuery, b.ID)
+	var count int
+	if err := checkRow.Scan(&count); err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return errors.New(NoResourseFound)
+	}
+
 	query := `UPDATE budgets 
 		SET category = ?,amount = ? , startperiod = ? , endperiod = ?
 		WHERE id = ? 
@@ -340,8 +368,22 @@ func (s *store) UpdateBudget(b domain.Budget) error {
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(b.Category, b.Amount, b.StartPeriod, b.EndPeriod, b.ID)
-	return err
+	result, err := stmt.Exec(b.Category, b.Amount, b.StartPeriod, b.EndPeriod, b.ID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New(NoResourseFound)
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *store) AddTransaction(t domain.Transaction) error {
@@ -377,8 +419,21 @@ func (s *store) UpdateTransaction(t domain.Transaction) error {
 	}
 
 	defer stmt.Close()
-	_, err = stmt.Exec(t.Date, t.Amount, t.Category, t.Tag, t.Description, t.TransactionID, t.ID)
-	return err
+	result, err := stmt.Exec(t.Date, t.Amount, t.Category, t.Tag, t.Description, t.TransactionID, t.ID)
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return errors.New(NoResourseFound)
+	}
+
+	return nil
 }
 
 func (s *store) DeleteTransaction(t domain.Transaction) error {
@@ -391,8 +446,20 @@ func (s *store) DeleteTransaction(t domain.Transaction) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(t.ID)
-	return err
+	result, err := stmt.Exec(t.ID)
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return errors.New(NoResourseFound)
+	}
+	return nil
 }
 
 func (s *store) GetTransactionById(id int64) (*domain.Transaction, error) {
@@ -460,14 +527,14 @@ func (s *store) GetTransactionByCategory(category string) ([]domain.Transaction,
 		err := row.Scan(&transaction.ID, &transaction.Date, &transaction.Amount, &transaction.Category, &transaction.Tag, &transaction.Description, &transaction.TransactionID)
 
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return nil, errors.New(NoResourseFound)
-			}
 			return nil, err
 		}
 
 		transactions = append(transactions, transaction)
 	}
 
+	if len(transactions) == 0 {
+		return nil, errors.New(NoResourseFound)
+	}
 	return transactions, nil
 }

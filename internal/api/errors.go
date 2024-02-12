@@ -10,7 +10,9 @@ var (
 	NameError           = "Please provide correct name"
 	PasswordError       = "Password should be strong"
 	UniqueError         = "ID must be unique"
+	UniqueTransaction   = "Transaction ID must be unique"
 	NoResourseFound     = "No Resourse Found"
+	NotAuthorized       = "Not Authorized"
 )
 
 var (
@@ -24,5 +26,5 @@ var (
 	CreateError = "Could not create.."
 	GetError    = "Could not get the data"
 	DeleteError = "Could not delete data"
-	UpdateError = "Could not delete data"
+	UpdateError = "Could not update data"
 )

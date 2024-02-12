@@ -13,6 +13,10 @@ func searchTransaction(service app.Service) func(w http.ResponseWriter, r *http.
 		searchTransaction, err := service.Search(tag)
 		if err != nil {
 			fmt.Println(err)
+			if err.Error() == NoResourseFound {
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
+				return
+			}
 			Response(w, http.StatusInternalServerError, Message{Msg: "Internal Server error"})
 			return
 		}

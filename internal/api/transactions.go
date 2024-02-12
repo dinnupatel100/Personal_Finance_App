@@ -24,7 +24,8 @@ func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Req
 		err = service.AddTransaction(transaction)
 
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: UniqueError})
+			fmt.Println(err)
+			Response(w, http.StatusBadRequest, Message{Msg: UniqueTransaction})
 			return
 		}
 
@@ -37,7 +38,7 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			Response(w, http.StatusNotFound, QueryNotFoundError)
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
 			return
 		}
 
@@ -46,25 +47,28 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&updatedTransaction)
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
 		updatedTransaction.ID, err = strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
 		err = service.UpdateTransaction(updatedTransaction)
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, UpdateError)
+			if err.Error() == NoResourseFound {
+				Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+				return
+			}
 			return
 		}
 
-		Response(w, http.StatusOK, Update)
+		Response(w, http.StatusOK, Message{Msg: Update})
 	}
 
 }
@@ -74,30 +78,30 @@ func deleteTransaction(service app.Service) http.HandlerFunc {
 
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			Response(w, http.StatusNotFound, QueryNotFoundError)
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
 			return
 		}
 
 		i, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 		}
 
 		transaction, err := service.GetTransactionById(i)
 
 		if err != nil {
-			Response(w, http.StatusBadRequest, FetchingError)
+			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
 			return
 		}
 
 		err = service.DeleteTransaction(app.Transaction(*transaction))
 
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: DeleteError})
+			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
 			return
 		}
 
-		Response(w, http.StatusOK, Delete)
+		Response(w, http.StatusOK, Message{Msg: Delete})
 	}
 
 }
@@ -124,12 +128,17 @@ func getTransaction(service app.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		category := r.URL.Query().Get("category")
 		if category == "" {
-			Response(w, http.StatusNotFound, QueryNotFoundError)
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
 			return
 		}
 
 		transction, err := service.GetTransactionByCategory(category)
 		if err != nil {
+			if err.Error() == NoResourseFound {
+				Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+				return
+			}
+
 			Response(w, http.StatusBadRequest, FetchingError)
 			return
 		}

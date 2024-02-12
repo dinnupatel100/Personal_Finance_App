@@ -17,7 +17,7 @@ func addBudget(service app.Service) func(w http.ResponseWriter, r *http.Request)
 
 		err := json.NewDecoder(r.Body).Decode(&budget)
 		if err != nil {
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
@@ -25,11 +25,11 @@ func addBudget(service app.Service) func(w http.ResponseWriter, r *http.Request)
 
 		if err != nil {
 			fmt.Println("Error :", err)
-			Response(w, http.StatusInternalServerError, CreateError)
+			Response(w, http.StatusInternalServerError, Message{Msg: err.Error()})
 			return
 		}
 
-		Response(w, http.StatusOK, Create)
+		Response(w, http.StatusOK, Message{Msg: Create})
 	}
 
 }
@@ -50,6 +50,10 @@ func getAllBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		category := r.URL.Query().Get("category")
+		if category == "" {
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
+			return
+		}
 
 		var pendingFoodAmount, pendingGroceryAmount, pendingShoppingAmount float64
 		transactionData, err := service.GetTransactionData()
@@ -111,8 +115,7 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 
 				}
 			} else {
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("You don't spend on this caterory so that your budget is same as you added in this category"))
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
 				return
 			}
 
@@ -133,7 +136,7 @@ func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Reque
 
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, Message{Msg: InternalServerError})
+			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
 			return
 		}
 
@@ -156,10 +159,15 @@ func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Reque
 func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		paramId := r.URL.Query().Get("id")
+		if paramId == "" {
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
+			return
+		}
 
 		i, err := strconv.ParseInt(paramId, 10, 64)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Cannot convert into int"})
+			fmt.Print(err)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
@@ -173,7 +181,7 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 
 		updateBudget.ID = i
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: "Cannot convert the string"})
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 		err = service.UpdateBudget(updateBudget)
@@ -183,7 +191,7 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: "Update budget successfully"})
+		Response(w, http.StatusBadRequest, Message{Msg: Update})
 
 	}
 

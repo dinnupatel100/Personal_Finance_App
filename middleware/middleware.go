@@ -10,15 +10,13 @@ func Authorization(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Not authorised"))
+			Response(w, http.StatusNotFound, Message{Msg: "Not Authorized"})
 			return
 		}
 
 		_, err := utils.VerifyToken(tokenString)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Not authorised"))
+			Response(w, http.StatusUnauthorized, Message{Msg: "Not Authorized"})
 			return
 		}
 
