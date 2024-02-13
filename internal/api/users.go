@@ -14,6 +14,13 @@ func signup(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user app.User
 		err := json.NewDecoder(r.Body).Decode(&user)
+
+		err = validate.ValidateUser(user)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
@@ -58,6 +65,12 @@ func login(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			return
+		}
+
+		err = validate.ValidateLogin(user)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 

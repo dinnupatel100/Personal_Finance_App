@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"unicode"
+
+	"github.com/personal-finance-app/internal/app"
 )
 
 func ValidateName(name string) error {
@@ -117,6 +119,97 @@ func ValidatePassword(password string) error {
 
 	if !checkLowerCase || !checkDigit || !checkSpecialChar {
 		return errors.New("Password seems to be week")
+	}
+
+	return nil
+}
+
+func ValidateUser(u app.User) error {
+	if len(u.FirstName) <= 0 {
+		return errors.New("First Name can not be empty")
+	}
+
+	if len(u.LastName) <= 0 {
+		return errors.New("Last name can not be empty")
+	}
+
+	if len(u.Email) <= 0 {
+		return errors.New("Email can not be empty")
+	}
+
+	if len(u.Password) <= 0 {
+		return errors.New("Password can not be empty")
+	}
+
+	if len(u.Password) < 5 {
+		return errors.New("Password is too short")
+	}
+	return nil
+}
+
+func ValidateLogin(u app.Login) error {
+	if len(u.Email) <= 0 {
+		return errors.New("Email can not be empty")
+	}
+
+	if len(u.Password) <= 0 {
+		return errors.New("Password can not be empty")
+	}
+
+	return nil
+}
+
+func ValidateBudget(b app.Budget) error {
+	if b.Amount <= 0 {
+		return errors.New("Amount can not be empty")
+	}
+
+	if len(b.Category) <= 0 {
+		return errors.New("Category cannot be empty")
+	}
+
+	if len(b.EndPeriod) <= 0 {
+		return errors.New("Start Period cannot be empty")
+	}
+
+	if len(b.EndPeriod) <= 0 {
+		return errors.New("End Period cannot be empty")
+	}
+
+	return nil
+}
+
+func ValidateTransaction(t app.Transaction) error {
+	if len(t.Date) <= 0 {
+		return errors.New("Date can not be empty")
+	}
+
+	if t.Amount <= 0 {
+		return errors.New("Amount can not be empty")
+	}
+
+	if len(t.Category) <= 0 {
+		return errors.New("Category can not be empty")
+	}
+
+	if len(t.Tag) <= 0 {
+		return errors.New("Tag can not be empty")
+	}
+
+	if len(t.Description) <= 0 {
+		return errors.New("Description can not be empty")
+	}
+
+	if t.TransactionID <= 0 {
+		return errors.New("Transaction ID can not be empty")
+	}
+
+	return nil
+}
+
+func ValidateCatgory(c app.Category) error {
+	if len(c.CategoryName) <= 0 {
+		return errors.New("Category can not be empty")
 	}
 
 	return nil

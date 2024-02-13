@@ -121,6 +121,9 @@ func (s *store) Search(tag string) ([]domain.Transaction, error) {
 }
 
 func (s *store) AddCategory(c domain.Category) error {
+	if c.CategoryName == "" {
+		return errors.New(NoResourseFound)
+	}
 
 	query := `INSERT INTO category(category_name)
 			  VALUES(?)`

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/personal-finance-app/internal/app"
+	utils "github.com/personal-finance-app/utils/validation"
 )
 
 // POST Reuqest
@@ -16,6 +17,12 @@ func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Req
 		var transaction app.Transaction
 		err := json.NewDecoder(r.Body).Decode(&transaction)
 
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
+		err = utils.ValidateTransaction(transaction)
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
@@ -48,6 +55,12 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 		if err != nil {
 			fmt.Println(err)
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			return
+		}
+
+		err = utils.ValidateTransaction(updatedTransaction)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 

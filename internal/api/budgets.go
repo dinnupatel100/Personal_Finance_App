@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/personal-finance-app/internal/app"
+	utils "github.com/personal-finance-app/utils/validation"
 )
 
 func addBudget(service app.Service) func(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +22,11 @@ func addBudget(service app.Service) func(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
+		err = utils.ValidateBudget(budget)
+		if err != nil {
+			Response(w, http.StatusNotFound, Message{Msg: err.Error()})
+			return
+		}
 		err = service.AddBudget(budget)
 
 		if err != nil {
@@ -80,37 +86,41 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 						value := strconv.FormatFloat(math.Abs(pendingFoodAmount), 'f', -1, 64)
 						w.Write([]byte("Your payment is exceed for food by : "))
 						w.Write([]byte(value))
+						return
 					} else {
 						value := strconv.FormatFloat(math.Abs(pendingFoodAmount), 'f', -1, 64)
 						w.Write([]byte("Your pending amount for food : "))
 						w.Write([]byte(value))
-
+						return
 					}
 
 				} else if index == "grocery" && category == "grocery" {
-					pendingShoppingAmount = float64(value - val)
+					pendingGroceryAmount = float64(value - val)
 					if pendingGroceryAmount < 0 {
 						value := strconv.FormatFloat(math.Abs(pendingGroceryAmount), 'f', -1, 64)
 						w.Write([]byte("Your payment is exceed for grocery by : "))
 						w.Write([]byte(value))
+						return
 					} else {
 						value := strconv.FormatFloat(pendingGroceryAmount, 'f', -1, 64)
 						fmt.Println(pendingGroceryAmount)
 						w.Write([]byte("Your pending amount for grocery : "))
 						w.Write([]byte(value))
+						return
 					}
 
 				} else if index == "shopping" && category == "shopping" {
-					pendingGroceryAmount = float64(value - val)
+					pendingShoppingAmount = float64(value - val)
 					if pendingShoppingAmount < 0 {
 						value := strconv.FormatFloat(math.Abs(pendingShoppingAmount), 'f', -1, 64)
 						w.Write([]byte("Your payment is exceed for shopping by  : "))
 						w.Write([]byte(value))
+						return
 					} else {
 						value := strconv.FormatFloat(math.Abs(pendingShoppingAmount), 'f', -1, 64)
 						w.Write([]byte("Your pending amount for shopping : "))
 						w.Write([]byte(value))
-
+						return
 					}
 
 				}
@@ -126,10 +136,15 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		paramId := r.URL.Query().Get("id")
+		if paramId == "" {
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
+			return
+		}
 
 		i, err := strconv.ParseInt(paramId, 10, 64)
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			return
 		}
 
 		budget, err := service.GetBudgetById(i)
@@ -184,6 +199,13 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
+
+		err = utils.ValidateBudget(updateBudget)
+		if err != nil {
+			Response(w, http.StatusNotFound, Message{Msg: err.Error()})
+			return
+		}
+
 		err = service.UpdateBudget(updateBudget)
 		if err != nil {
 			fmt.Println("Error is :", err)
