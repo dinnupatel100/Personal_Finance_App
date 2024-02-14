@@ -43,7 +43,6 @@ type store struct {
 func (s *store) Signup(u domain.User) error {
 	query := `INSERT INTO users(first_name , last_name , email , password) VALUES (?,?,?,?)`
 	stmt, err := s.db.Prepare(query)
-
 	if err != nil {
 		return err
 	}
@@ -121,12 +120,7 @@ func (s *store) Search(tag string) ([]domain.Transaction, error) {
 }
 
 func (s *store) AddCategory(c domain.Category) error {
-	if c.CategoryName == "" {
-		return errors.New(NoResourseFound)
-	}
-
-	query := `INSERT INTO category(category_name)
-			  VALUES(?)`
+	query := `INSERT INTO category(category_name) VALUES(?)`
 
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
@@ -184,7 +178,7 @@ func (s *store) AddBudget(b domain.Budget) error {
 	}
 
 	if count == 0 {
-		return errors.New("category does not exists")
+		return errors.New("category does not exists in the category")
 	}
 
 	query = `INSERT INTO budgets(category , amount , startperiod , endperiod)
@@ -512,9 +506,7 @@ func (s *store) GetAllTransactions() ([]domain.Transaction, error) {
 }
 
 func (s *store) GetTransactionByCategory(category string) ([]domain.Transaction, error) {
-	query := `SELECT * FROM transactions 
-		WHERE category = ?
-	`
+	query := `SELECT * FROM transactions WHERE category = ?`
 	row, err := s.db.Query(query, category)
 	if err != nil {
 		fmt.Println(err)

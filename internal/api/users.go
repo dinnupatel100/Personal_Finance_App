@@ -14,15 +14,14 @@ func signup(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user app.User
 		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
+			return
+		}
 
 		err = validate.ValidateUser(user)
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
-			return
-		}
-
-		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
@@ -47,9 +46,8 @@ func signup(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = service.Signup(user)
-
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: InternalServerError})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -61,10 +59,10 @@ func signup(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 func login(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user app.Login
-		err := json.NewDecoder(r.Body).Decode(&user)
 
+		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -75,14 +73,13 @@ func login(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err = validate.ValidateEmail(user.Email); err != nil {
-
 			Response(w, http.StatusBadRequest, Message{Msg: EmailError})
 			return
 		}
 
 		err = service.Login(user)
 		if err != nil {
-			Response(w, http.StatusUnauthorized, Message{Msg: CredentialsError})
+			Response(w, http.StatusBadRequest, Message{Msg: CredentialsError})
 			return
 		}
 

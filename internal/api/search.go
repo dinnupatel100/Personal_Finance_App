@@ -10,6 +10,10 @@ import (
 func searchTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tag := r.URL.Query().Get("tag")
+		if tag == "" {
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
+			return
+		}
 		searchTransaction, err := service.Search(tag)
 		if err != nil {
 			fmt.Println(err)
@@ -17,11 +21,10 @@ func searchTransaction(service app.Service) func(w http.ResponseWriter, r *http.
 				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
 				return
 			}
-			Response(w, http.StatusInternalServerError, Message{Msg: "Internal Server error"})
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 
 		Response(w, http.StatusOK, searchTransaction)
-
 	}
 }

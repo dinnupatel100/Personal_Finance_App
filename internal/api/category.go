@@ -15,7 +15,7 @@ func addCategory(service app.Service) func(w http.ResponseWriter, r *http.Reques
 		err := json.NewDecoder(r.Body).Decode(&category)
 		if err != nil {
 			fmt.Println("Err", err)
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -28,7 +28,7 @@ func addCategory(service app.Service) func(w http.ResponseWriter, r *http.Reques
 		err = service.AddCategory(category)
 		if err != nil {
 			fmt.Println("Err", err)
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
 			return
 		}
 

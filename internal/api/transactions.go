@@ -13,12 +13,10 @@ import (
 // POST Reuqest
 func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		var transaction app.Transaction
 		err := json.NewDecoder(r.Body).Decode(&transaction)
-
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -29,19 +27,17 @@ func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Req
 		}
 
 		err = service.AddTransaction(transaction)
-
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, Message{Msg: UniqueTransaction})
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: Create})
+		Response(w, http.StatusOK, Message{Msg: Create})
 	}
-
 }
 
-func updateTransaction(service app.Service) http.HandlerFunc {
+func updateTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		if id == "" {
@@ -54,7 +50,7 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&updatedTransaction)
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -75,9 +71,10 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 		if err != nil {
 			fmt.Println(err)
 			if err.Error() == NoResourseFound {
-				Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
 				return
 			}
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
@@ -86,9 +83,8 @@ func updateTransaction(service app.Service) http.HandlerFunc {
 
 }
 
-func deleteTransaction(service app.Service) http.HandlerFunc {
+func deleteTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		id := r.URL.Query().Get("id")
 		if id == "" {
 			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
@@ -98,19 +94,25 @@ func deleteTransaction(service app.Service) http.HandlerFunc {
 		i, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			return
 		}
 
 		transaction, err := service.GetTransactionById(i)
-
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+			fmt.Println(err)
+			if err.Error() == NoResourseFound {
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
+				return
+			}
+
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
 		err = service.DeleteTransaction(app.Transaction(*transaction))
-
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+			fmt.Println(err)
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
@@ -119,16 +121,16 @@ func deleteTransaction(service app.Service) http.HandlerFunc {
 
 }
 
-func getAllTransactions(service app.Service) http.HandlerFunc {
+func getAllTransactions(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		transactions, err := service.GetAllTransactions()
 		if err != nil {
-			Response(w, http.StatusBadRequest, FetchingError)
+			Response(w, http.StatusBadRequest, Message{Msg: FetchingError})
 			return
 		}
 		jsonData, err := json.MarshalIndent(transactions, " ", "\t")
 		if err != nil {
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -137,7 +139,7 @@ func getAllTransactions(service app.Service) http.HandlerFunc {
 
 }
 
-func getTransaction(service app.Service) http.HandlerFunc {
+func getTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		category := r.URL.Query().Get("category")
 		if category == "" {
@@ -148,17 +150,18 @@ func getTransaction(service app.Service) http.HandlerFunc {
 		transction, err := service.GetTransactionByCategory(category)
 		if err != nil {
 			if err.Error() == NoResourseFound {
-				Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
 				return
 			}
 
-			Response(w, http.StatusBadRequest, FetchingError)
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
 		jsonData, err := json.MarshalIndent(transction, " ", "\t")
 		if err != nil {
-			Response(w, http.StatusBadRequest, RequestError)
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
+			return
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(jsonData))

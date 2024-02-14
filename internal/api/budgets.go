@@ -18,20 +18,21 @@ func addBudget(service app.Service) func(w http.ResponseWriter, r *http.Request)
 
 		err := json.NewDecoder(r.Body).Decode(&budget)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
 		err = utils.ValidateBudget(budget)
 		if err != nil {
-			Response(w, http.StatusNotFound, Message{Msg: err.Error()})
+			fmt.Println("Error :", err)
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
-		err = service.AddBudget(budget)
 
+		err = service.AddBudget(budget)
 		if err != nil {
 			fmt.Println("Error :", err)
-			Response(w, http.StatusInternalServerError, Message{Msg: err.Error()})
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
@@ -63,20 +64,21 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 
 		var pendingFoodAmount, pendingGroceryAmount, pendingShoppingAmount float64
 		transactionData, err := service.GetTransactionData()
-
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
 		budgetData, err := service.GetBudgetData()
-
 		if err != nil {
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
+		fmt.Println(transactionData)
+		fmt.Println(budgetData)
 
 		for index, value := range budgetData {
+			fmt.Println(index, " ", value)
 
 			if val, ok := transactionData[index]; ok {
 
@@ -148,10 +150,9 @@ func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Reque
 		}
 
 		budget, err := service.GetBudgetById(i)
-
 		if err != nil {
 			fmt.Println(err)
-			Response(w, http.StatusBadRequest, Message{Msg: NoResourseFound})
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
@@ -166,7 +167,7 @@ func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Reque
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: "Budget delete successful"})
+		Response(w, http.StatusBadRequest, Message{Msg: Delete})
 	}
 
 }
@@ -190,19 +191,15 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 
 		err = json.NewDecoder(r.Body).Decode(&updateBudget)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 
 		updateBudget.ID = i
-		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
-			return
-		}
 
 		err = utils.ValidateBudget(updateBudget)
 		if err != nil {
-			Response(w, http.StatusNotFound, Message{Msg: err.Error()})
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
 
@@ -213,7 +210,7 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: Update})
+		Response(w, http.StatusOK, Message{Msg: Update})
 
 	}
 

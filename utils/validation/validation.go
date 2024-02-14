@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/personal-finance-app/internal/app"
@@ -124,6 +125,15 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
+func ValidateDate(date string) error {
+	dateFormat := "2006-01-02"
+	_, err := time.Parse(dateFormat, date)
+	if err != nil {
+		return errors.New("Invalid Date")
+	}
+	return nil
+}
+
 func ValidateUser(u app.User) error {
 	if len(u.FirstName) <= 0 {
 		return errors.New("First Name can not be empty")
@@ -168,12 +178,21 @@ func ValidateBudget(b app.Budget) error {
 		return errors.New("Category cannot be empty")
 	}
 
-	if len(b.EndPeriod) <= 0 {
-		return errors.New("Start Period cannot be empty")
+	if ValidateName(b.Category) != nil {
+		return errors.New("Please provide valid category name")
 	}
 
+	if len(b.StartPeriod) <= 0 {
+		return errors.New("Start Period cannot be empty")
+	}
+	if ValidateDate(b.StartPeriod) != nil {
+		return errors.New("Invalid date")
+	}
 	if len(b.EndPeriod) <= 0 {
 		return errors.New("End Period cannot be empty")
+	}
+	if ValidateDate(b.EndPeriod) != nil {
+		return errors.New("Invalid date")
 	}
 
 	return nil
@@ -184,12 +203,24 @@ func ValidateTransaction(t app.Transaction) error {
 		return errors.New("Date can not be empty")
 	}
 
+	if ValidateDate(t.Date) != nil {
+		return errors.New("Invalid Date")
+	}
+
 	if t.Amount <= 0 {
 		return errors.New("Amount can not be empty")
 	}
 
 	if len(t.Category) <= 0 {
 		return errors.New("Category can not be empty")
+	}
+
+	if ValidateName(t.Category) != nil {
+		return errors.New("Invalid category name")
+	}
+
+	if ValidateName(t.Tag) != nil {
+		return errors.New("Invalid tag name")
 	}
 
 	if len(t.Tag) <= 0 {
@@ -212,5 +243,8 @@ func ValidateCatgory(c app.Category) error {
 		return errors.New("Category can not be empty")
 	}
 
+	if ValidateName(c.CategoryName) != nil {
+		return errors.New("Category must be valid")
+	}
 	return nil
 }
