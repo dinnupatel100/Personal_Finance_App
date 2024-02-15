@@ -16,29 +16,31 @@ import (
 
 func TestAddTransaction(t *testing.T) {
 
-	tests := []struct {
-		name    string
-		args    app.Transaction
-		wantErr bool
-		setup   func(srvMockInterface *mocks.Service)
-	}{
-		{
-			name: "success",
-			args: app.Transaction{
-				ID:            123,
-				Date:          "2024-01-02",
-				Amount:        2000,
-				Category:      "food",
-				Tag:           "restaurant",
-				Description:   "Some Description",
-				TransactionID: 12344,
-			},
-			wantErr: false,
-			setup: func(srvMockInterface *mocks.Service) {
-				srvMockInterface.AddTransaction(mocks.NewService()).Return()
-			},
-		},
-	}
+	// tests := []struct {
+	// 	name           string
+	// 	args           app.Transaction // input
+	// 	expectedOutput error
+	// 	wantErr        bool
+	// 	setup          func(srvInterface *mocks.Service)
+	// }{
+	// 	{
+	// 		name: "success",
+	// 		args: app.Transaction{
+	// 			ID:            123,
+	// 			Date:          "2024-01-02",
+	// 			Amount:        2000,
+	// 			Category:      "food",
+	// 			Tag:           "restaurant",
+	// 			Description:   "Some Description",
+	// 			TransactionID: 12344,
+	// 		},
+	// 		expectedOutput: nil,
+	// 		wantErr:        false,
+	// 		setup: func(srvInterface *mock.Serv	ice) {
+
+	// 		},
+	// 	},
+	// }
 
 	transaction := app.Transaction{
 		ID:            123,

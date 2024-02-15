@@ -70,6 +70,6 @@ type Token struct {
 }
 
 type Category struct {
-	ID           int64
-	CategoryName string
+	ID           int64  `json:"id"`
+	CategoryName string `json:"categoryname"`
 }

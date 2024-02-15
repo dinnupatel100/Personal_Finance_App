@@ -143,8 +143,8 @@ func (s *store) AddCategory(c domain.Category) error {
 		return err
 	}
 
-	id, err := result.LastInsertId()
-	c.ID = id
+	_, err = result.LastInsertId()
+	//	c.ID = id
 	return err
 
 }
@@ -398,8 +398,7 @@ func (s *store) AddTransaction(t domain.Transaction) error {
 		return err
 	}
 
-	id, err := result.LastInsertId()
-	t.ID = id
+	_, err = result.LastInsertId()
 	return err
 }
 

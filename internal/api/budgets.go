@@ -74,14 +74,9 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
 			return
 		}
-		fmt.Println(transactionData)
-		fmt.Println(budgetData)
 
 		for index, value := range budgetData {
-			fmt.Println(index, " ", value)
-
 			if val, ok := transactionData[index]; ok {
-
 				if index == "food" && category == "food" {
 					pendingFoodAmount = float64(value - val)
 					if pendingFoodAmount < 0 {
