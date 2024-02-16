@@ -36,7 +36,7 @@ func TestAddTransaction(t *testing.T) {
 	// 		},
 	// 		expectedOutput: nil,
 	// 		wantErr:        false,
-	// 		setup: func(srvInterface *mock.Serv	ice) {
+	// 		setup: func(srvInterface *mock.Service) {
 
 	// 		},
 	// 	},

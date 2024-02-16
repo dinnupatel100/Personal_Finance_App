@@ -45,7 +45,6 @@ func createTables() {
 		CREATE TABLE IF NOT EXISTS category(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			category_name TEXT NOT NULL UNIQUE,
-			FOREIGN KEY(id) REFERENCES users(id)
 		)
 	`
 
@@ -64,6 +63,7 @@ func createTables() {
 			description TEXT NOT NULL,
 			transaction_id INTEGER UNIQUE,
 			FOREIGN KEY(id) REFERENCES users(id)
+			FOREIGN KEY(id) REFERENCES category(id)
 		)
 	`
 
@@ -82,6 +82,7 @@ func createTables() {
 			endperiod DATE NOT NULL,
 			FOREIGN KEY(id) REFERENCES transactions(id),
 			FOREIGN KEY(id) REFERENCES users(id)
+			FOREIGN KEY(id) REFERENCES category(id)
 		)
 	`
 	_, err = DB.Exec(createBudgetTable)

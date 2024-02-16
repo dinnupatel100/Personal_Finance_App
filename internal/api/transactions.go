@@ -10,7 +10,6 @@ import (
 	utils "github.com/personal-finance-app/utils/validation"
 )
 
-// POST Reuqest
 func addTransaction(service app.Service) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var transaction app.Transaction

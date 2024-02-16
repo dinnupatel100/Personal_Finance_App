@@ -151,3 +151,5 @@ func (s *service) GetAllTransactions() ([]domain.Transaction, error) {
 func (s *service) GetTransactionByCategory(category string) ([]domain.Transaction, error) {
 	return s.store.GetTransactionByCategory(category)
 }
+
+func (a *service) GetPendingBudget(category string)
