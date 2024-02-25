@@ -62,70 +62,21 @@ func pendingBudget(service app.Service) func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		var pendingFoodAmount, pendingGroceryAmount, pendingShoppingAmount float64
-		transactionData, err := service.GetTransactionData()
+		pendingAmount, err := service.GetPendingAmount(category)
 		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			Response(w, http.StatusInternalServerError, Message{Msg: err.Error()})
 			return
 		}
 
-		budgetData, err := service.GetBudgetData()
-		if err != nil {
-			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+		value := strconv.FormatInt(int64(math.Abs(float64(pendingAmount))), 10)
+		if pendingAmount < 0 {
+			w.Write([]byte("Your payment is exceed for this category by : "))
+			w.Write([]byte(value))
 			return
-		}
-
-		for index, value := range budgetData {
-			if val, ok := transactionData[index]; ok {
-				if index == "food" && category == "food" {
-					pendingFoodAmount = float64(value - val)
-					if pendingFoodAmount < 0 {
-						value := strconv.FormatFloat(math.Abs(pendingFoodAmount), 'f', -1, 64)
-						w.Write([]byte("Your payment is exceed for food by : "))
-						w.Write([]byte(value))
-						return
-					} else {
-						value := strconv.FormatFloat(math.Abs(pendingFoodAmount), 'f', -1, 64)
-						w.Write([]byte("Your pending amount for food : "))
-						w.Write([]byte(value))
-						return
-					}
-
-				} else if index == "grocery" && category == "grocery" {
-					pendingGroceryAmount = float64(value - val)
-					if pendingGroceryAmount < 0 {
-						value := strconv.FormatFloat(math.Abs(pendingGroceryAmount), 'f', -1, 64)
-						w.Write([]byte("Your payment is exceed for grocery by : "))
-						w.Write([]byte(value))
-						return
-					} else {
-						value := strconv.FormatFloat(pendingGroceryAmount, 'f', -1, 64)
-						fmt.Println(pendingGroceryAmount)
-						w.Write([]byte("Your pending amount for grocery : "))
-						w.Write([]byte(value))
-						return
-					}
-
-				} else if index == "shopping" && category == "shopping" {
-					pendingShoppingAmount = float64(value - val)
-					if pendingShoppingAmount < 0 {
-						value := strconv.FormatFloat(math.Abs(pendingShoppingAmount), 'f', -1, 64)
-						w.Write([]byte("Your payment is exceed for shopping by  : "))
-						w.Write([]byte(value))
-						return
-					} else {
-						value := strconv.FormatFloat(math.Abs(pendingShoppingAmount), 'f', -1, 64)
-						w.Write([]byte("Your pending amount for shopping : "))
-						w.Write([]byte(value))
-						return
-					}
-
-				}
-			} else {
-				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
-				return
-			}
-
+		} else {
+			w.Write([]byte("Your pending budget for this category is: "))
+			w.Write([]byte(value))
+			return
 		}
 	}
 }

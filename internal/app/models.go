@@ -16,8 +16,8 @@ type Service interface {
 	GetAllBudgets() ([]domain.Budget, error)
 	DeleteBudget(Budget) error
 	GetBudgetById(int64) (*domain.Budget, error)
-	GetTransactionData() (map[string]int64, error)
-	GetBudgetData() (map[string]int64, error)
+	// GetTransactionData() (map[string]int64, error)
+	// GetBudgetData() (map[string]int64, error)
 	UpdateBudget(Budget) error
 	AddTransaction(Transaction) error
 	UpdateTransaction(Transaction) error
@@ -25,6 +25,8 @@ type Service interface {
 	GetTransactionById(id int64) (*domain.Transaction, error)
 	GetAllTransactions() ([]domain.Transaction, error)
 	GetTransactionByCategory(string) ([]domain.Transaction, error)
+
+	GetPendingAmount(string) (int64, error)
 }
 
 type service struct {

@@ -24,8 +24,8 @@ type Storer interface {
 	GetAllBudgets() ([]domain.Budget, error)
 	DeleteBudget(domain.Budget) error
 	GetBudgetById(int64) (*domain.Budget, error)
-	GetTransactionData() (map[string]int64, error)
-	GetBudgetData() (map[string]int64, error)
+	GetTotalTransactionBYCategory(string) (map[string]int64, error)
+	GetTotalBudgetByCategory(string) (map[string]int64, error)
 	UpdateBudget(domain.Budget) error
 
 	AddTransaction(domain.Transaction) error
@@ -281,11 +281,10 @@ func (s *store) GetBudgetById(id int64) (*domain.Budget, error) {
 	return &budget, nil
 }
 
-func (s *store) GetTransactionData() (map[string]int64, error) {
-
+func (s *store) GetTotalTransactionBYCategory(category string) (map[string]int64, error) {
 	tMap := make(map[string]int64)
-
-	table, err := s.db.Query(`SELECT category , amount FROM transactions`)
+	query := `SELECT amount FROM transactions WHERE category = ?`
+	table, err := s.db.Query(query, category)
 
 	if err != nil {
 		return nil, errors.New(InternalServerError)
@@ -294,8 +293,8 @@ func (s *store) GetTransactionData() (map[string]int64, error) {
 	defer table.Close()
 
 	for table.Next() {
-		var category, amount string
-		err := table.Scan(&category, &amount)
+		var amount string
+		err := table.Scan(&amount)
 
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -314,9 +313,10 @@ func (s *store) GetTransactionData() (map[string]int64, error) {
 	return tMap, nil
 }
 
-func (s *store) GetBudgetData() (map[string]int64, error) {
+func (s *store) GetTotalBudgetByCategory(category string) (map[string]int64, error) {
 	bMap := make(map[string]int64)
-	table, err := s.db.Query(`SELECT category , amount FROM budgets`)
+	query := `SELECT amount FROM budgets WHERE category = ? `
+	table, err := s.db.Query(query, category)
 	if err != nil {
 		return nil, errors.New(InternalServerError)
 	}
@@ -324,8 +324,8 @@ func (s *store) GetBudgetData() (map[string]int64, error) {
 	defer table.Close()
 
 	for table.Next() {
-		var category, amount string
-		err := table.Scan(&category, &amount)
+		var amount string
+		err := table.Scan(&amount)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return nil, errors.New(NoResourseFound)
@@ -339,6 +339,7 @@ func (s *store) GetBudgetData() (map[string]int64, error) {
 		}
 		bMap[category] = bMap[category] + amountValue
 	}
+
 	return bMap, nil
 }
 

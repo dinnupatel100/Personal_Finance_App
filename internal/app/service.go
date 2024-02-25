@@ -1,6 +1,8 @@
 package app
 
 import (
+	"errors"
+
 	"github.com/personal-finance-app/db"
 	"github.com/personal-finance-app/domain"
 )
@@ -78,13 +80,13 @@ func (s *service) GetBudgetById(id int64) (*domain.Budget, error) {
 	return s.store.GetBudgetById(id)
 }
 
-func (s *service) GetTransactionData() (map[string]int64, error) {
-	return s.store.GetTransactionData()
-}
+// func (s *service) GetTransactionData() (map[string]int64, error) {
+// 	return s.store.GetTransactionData()
+// }
 
-func (s *service) GetBudgetData() (map[string]int64, error) {
-	return s.store.GetBudgetData()
-}
+// func (s *service) GetBudgetData() (map[string]int64, error) {
+// 	return s.store.GetBudgetData()
+// }
 
 func (s *service) UpdateBudget(b Budget) error {
 	updateBudget := domain.Budget{
@@ -152,4 +154,19 @@ func (s *service) GetTransactionByCategory(category string) ([]domain.Transactio
 	return s.store.GetTransactionByCategory(category)
 }
 
-func (a *service) GetPendingBudget(category string)
+func (s *service) GetPendingAmount(category string) (int64, error) {
+
+	transactionData, err := s.store.GetTotalTransactionBYCategory(category)
+	if err != nil {
+		return 0, errors.New("Could not find the transaction data : ")
+	}
+
+	budgetData, err := s.store.GetTotalBudgetByCategory(category)
+	if err != nil {
+		return 0, errors.New("Could not get the budget data")
+	}
+
+	pendingAmount := budgetData[category] - transactionData[category]
+
+	return pendingAmount, nil
+}
