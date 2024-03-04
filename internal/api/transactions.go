@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/personal-finance-app/internal/app"
 	utils "github.com/personal-finance-app/utils/validation"
@@ -146,7 +148,7 @@ func getTransaction(service app.Service) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		transction, err := service.GetTransactionByCategory(category)
+		transaction, err := service.GetTransactionByCategory(category)
 		if err != nil {
 			if err.Error() == NoResourseFound {
 				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
@@ -157,12 +159,55 @@ func getTransaction(service app.Service) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		jsonData, err := json.MarshalIndent(transction, " ", "\t")
+		jsonData, err := json.MarshalIndent(transaction, " ", "\t")
 		if err != nil {
 			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(jsonData))
+	}
+}
+
+func getTransactionByDate(service app.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		startDate := r.URL.Query().Get("start_date")
+		endDate := r.URL.Query().Get("end_date")
+
+		startDate = strings.Trim(startDate, `"`)
+		endDate = strings.Trim(endDate, `"`)
+
+		// date format
+		startDateValue, err := time.Parse("2006-01-02", startDate)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
+		endDateValue, err := time.Parse("2006-01-02", endDate)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
+		transaction, err := service.GetTransactionByDate(startDateValue, endDateValue)
+		if err != nil {
+			if err.Error() == NoResourseFound {
+				Response(w, http.StatusNotFound, Message{Msg: NoResourseFound})
+				return
+			}
+
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
+		jsonData, err := json.MarshalIndent(transaction, " ", "\t")
+		if err != nil {
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(jsonData))
+
 	}
 }

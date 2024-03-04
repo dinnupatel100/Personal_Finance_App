@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/personal-finance-app/domain"
 	utils "github.com/personal-finance-app/utils/hash"
@@ -34,6 +35,9 @@ type Storer interface {
 	GetTransactionById(id int64) (*domain.Transaction, error)
 	GetAllTransactions() ([]domain.Transaction, error)
 	GetTransactionByCategory(string) ([]domain.Transaction, error)
+
+	GetTransactionFromTo(time.Time, time.Time) ([]domain.Transaction, error)
+	// GetTransactionFromTo(string, string) ([]domain.Transaction, error)
 }
 
 type store struct {
@@ -520,6 +524,40 @@ func (s *store) GetTransactionByCategory(category string) ([]domain.Transaction,
 	for row.Next() {
 		var transaction domain.Transaction
 		err := row.Scan(&transaction.ID, &transaction.Date, &transaction.Amount, &transaction.Category, &transaction.Tag, &transaction.Description, &transaction.TransactionID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, transaction)
+	}
+
+	if len(transactions) == 0 {
+		return nil, errors.New(NoResourseFound)
+	}
+	return transactions, nil
+}
+
+// get the trnasaction from - to
+
+func (s *store) GetTransactionFromTo(startDate, endDate time.Time) ([]domain.Transaction, error) {
+	query := "SELECT * FROM transactions WHERE date BETWEEN ? AND ?"
+
+	// startDateValue := startDate.Format("2006-01-02")
+	// endDateValue := endDate.Format("2006-01-02")
+	rows, err := s.db.Query(query, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var transactions []domain.Transaction
+
+	for rows.Next() {
+		var transaction domain.Transaction
+		// var dateStr string
+		err := rows.Scan(&transaction.ID, &transaction.Date, &transaction.Amount, &transaction.Category, &transaction.Tag, &transaction.Description, &transaction.TransactionID)
 
 		if err != nil {
 			return nil, err

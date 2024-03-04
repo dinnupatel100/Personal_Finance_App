@@ -1,6 +1,8 @@
 package app
 
 import (
+	"time"
+
 	"github.com/personal-finance-app/domain"
 	"github.com/personal-finance-app/internal/db"
 )
@@ -25,6 +27,9 @@ type Service interface {
 	GetTransactionByCategory(string) ([]domain.Transaction, error)
 
 	GetPendingAmount(string) (int64, error)
+	GetTransactionByDate(time.Time, time.Time) ([]domain.Transaction, error)
+	// GetTransactionByDate(string, string) ([]domain.Transaction, error)
+
 }
 
 type service struct {

@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"time"
 
 	"github.com/personal-finance-app/domain"
 	"github.com/personal-finance-app/internal/db"
@@ -79,14 +80,6 @@ func (s *service) DeleteBudget(b Budget) error {
 func (s *service) GetBudgetById(id int64) (*domain.Budget, error) {
 	return s.store.GetBudgetById(id)
 }
-
-// func (s *service) GetTransactionData() (map[string]int64, error) {
-// 	return s.store.GetTransactionData()
-// }
-
-// func (s *service) GetBudgetData() (map[string]int64, error) {
-// 	return s.store.GetBudgetData()
-// }
 
 func (s *service) UpdateBudget(b Budget) error {
 	updateBudget := domain.Budget{
@@ -169,4 +162,8 @@ func (s *service) GetPendingAmount(category string) (int64, error) {
 	pendingAmount := budgetData[category] - transactionData[category]
 
 	return pendingAmount, nil
+}
+
+func (s *service) GetTransactionByDate(startDate, endDate time.Time) ([]domain.Transaction, error) {
+	return s.store.GetTransactionFromTo(startDate, endDate)
 }
