@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/personal-finance-app/db"
 	"github.com/personal-finance-app/domain"
+	"github.com/personal-finance-app/internal/db"
 )
 
 type Service interface {
@@ -16,8 +16,6 @@ type Service interface {
 	GetAllBudgets() ([]domain.Budget, error)
 	DeleteBudget(Budget) error
 	GetBudgetById(int64) (*domain.Budget, error)
-	// GetTransactionData() (map[string]int64, error)
-	// GetBudgetData() (map[string]int64, error)
 	UpdateBudget(Budget) error
 	AddTransaction(Transaction) error
 	UpdateTransaction(Transaction) error
@@ -30,7 +28,6 @@ type Service interface {
 }
 
 type service struct {
-	// db interface
 	store db.Storer
 }
 

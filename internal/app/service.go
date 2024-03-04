@@ -3,8 +3,8 @@ package app
 import (
 	"errors"
 
-	"github.com/personal-finance-app/db"
 	"github.com/personal-finance-app/domain"
+	"github.com/personal-finance-app/internal/db"
 )
 
 func NewService(str db.Storer) Service {
