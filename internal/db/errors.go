@@ -1,6 +1,6 @@
 package db
 
 var (
-	InternalServerError = "Internal Server Error"
-	NoResourseFound     = "No Resourse Found"
+	InternalServerError = "internal server error"
+	NoResourseFound     = "no resourse found"
 )
