@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/personal-finance-app/db"
 	"github.com/personal-finance-app/internal/api"
 	"github.com/personal-finance-app/internal/app"
+	"github.com/personal-finance-app/internal/db"
 )
 
 func main() {
