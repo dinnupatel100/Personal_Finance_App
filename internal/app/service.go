@@ -167,3 +167,8 @@ func (s *service) GetPendingAmount(category string) (int64, error) {
 func (s *service) GetTransactionByDate(startDate, endDate time.Time) ([]domain.Transaction, error) {
 	return s.store.GetTransactionFromTo(startDate, endDate)
 }
+
+
+func (s *service) GetAllCategory() ([]domain.Category, error) {
+	return s.store.GetAllCategory()
+}

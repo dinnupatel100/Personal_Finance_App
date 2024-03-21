@@ -20,6 +20,7 @@ type Storer interface {
 	Search(string) ([]domain.Transaction, error)
 
 	AddCategory(domain.Category) error
+	GetAllCategory() ([]domain.Category, error)
 
 	AddBudget(budget domain.Budget) error
 	GetAllBudgets() ([]domain.Budget, error)
@@ -570,4 +571,34 @@ func (s *store) GetTransactionFromTo(startDate, endDate time.Time) ([]domain.Tra
 		return nil, errors.New(NoResourseFound)
 	}
 	return transactions, nil
+}
+
+
+
+func (s *store) GetAllCategory() ([]domain.Category, error) {
+	query := "SELECT * FROM category"
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var categories []domain.Category
+
+	for rows.Next() {
+		var category domain.Category
+		err := rows.Scan(&category.ID, &category.CategoryName)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.New(NoResourseFound)
+			}
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	return categories, nil
 }

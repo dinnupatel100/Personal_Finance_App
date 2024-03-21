@@ -19,6 +19,7 @@ func RegisteredRoutes(router *mux.Router, service app.Service) {
 
 	// category
 	authRoute.HandleFunc("/addcategory", addCategory(service)).Methods(http.MethodPost)
+	authRoute.HandleFunc("/getallcategory", getAllCategory(service)).Methods(http.MethodGet)
 
 	// search
 	authRoute.HandleFunc("/search", searchTransaction(service)).Methods(http.MethodGet)

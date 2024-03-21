@@ -28,8 +28,7 @@ type Service interface {
 
 	GetPendingAmount(string) (int64, error)
 	GetTransactionByDate(time.Time, time.Time) ([]domain.Transaction, error)
-	// GetTransactionByDate(string, string) ([]domain.Transaction, error)
-
+	GetAllCategory() ([]domain.Category, error)
 }
 
 type service struct {

@@ -35,3 +35,21 @@ func addCategory(service app.Service) func(w http.ResponseWriter, r *http.Reques
 		Response(w, http.StatusOK, Message{Msg: Create})
 	}
 }
+
+
+func getAllCategory(service app.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		categories, err := service.GetAllCategory()
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: FetchingError})
+			return
+		}
+		jsonData, err := json.MarshalIndent(categories, " ", "\t")
+		if err != nil {
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(jsonData))
+	}
+}
