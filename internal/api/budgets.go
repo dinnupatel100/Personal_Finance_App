@@ -161,3 +161,35 @@ func updateBudget(service app.Service) func(w http.ResponseWriter, r *http.Reque
 	}
 
 }
+
+
+func getBudgetById(service app.Service) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		paramId := r.URL.Query().Get("id")
+		if paramId == "" {
+			Response(w, http.StatusNotFound, Message{Msg: QueryNotFoundError})
+			return
+		}
+
+		i, err := strconv.ParseInt(paramId, 10, 64)
+		if err != nil {
+			Response(w, http.StatusBadRequest, Message{Msg: RequestError})
+			return
+		}
+
+		budget, err := service.GetBudgetById(i)
+		if err != nil {
+			fmt.Println(err)
+			Response(w, http.StatusBadRequest, Message{Msg: err.Error()})
+			return
+		}
+
+		jsonData, err := json.MarshalIndent(budget, " ", "\t")
+		if err != nil {
+			Response(w, http.StatusInternalServerError, Message{Msg: InternalServerError})
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(jsonData))
+	}
+}
