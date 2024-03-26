@@ -13,6 +13,8 @@ type Service interface {
 
 	Search(string) ([]domain.Transaction, error)
 	AddCategory(Category) error
+	GetCategoryById(int64) (*domain.Category, error)
+	DeleteCategory(Category) error
 
 	AddBudget(Budget) error
 	GetAllBudgets() ([]domain.Budget, error)
