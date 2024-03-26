@@ -113,7 +113,7 @@ func deleteBudget(service app.Service) func(w http.ResponseWriter, h *http.Reque
 			return
 		}
 
-		Response(w, http.StatusBadRequest, Message{Msg: Delete})
+		Response(w, http.StatusOK, Message{Msg: Delete})
 	}
 
 }
