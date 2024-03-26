@@ -21,7 +21,7 @@ var (
 
 	Create      = "created successfully!!!"
 	Got         = "got successfully!!!"
-	Delete      = "ddeleted successfully!!!"
+	Delete      = "deleted successfully!!!"
 	Update      = "updated successfully!!!"
 	CreateError = "could not create.."
 	GetError    = "could not get the data"
