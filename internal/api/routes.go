@@ -20,6 +20,7 @@ func RegisteredRoutes(router *mux.Router, service app.Service) {
 	// category
 	authRoute.HandleFunc("/addcategory", addCategory(service)).Methods(http.MethodPost)
 	authRoute.HandleFunc("/getallcategory", getAllCategory(service)).Methods(http.MethodGet)
+	authRoute.HandleFunc("/deletecategory", deleteCategory(service)).Methods(http.MethodDelete)
 
 	// search
 	authRoute.HandleFunc("/search", searchTransaction(service)).Methods(http.MethodGet)
@@ -30,6 +31,7 @@ func RegisteredRoutes(router *mux.Router, service app.Service) {
 	authRoute.HandleFunc("/deletetransaction", deleteTransaction(service)).Methods(http.MethodDelete)
 	authRoute.HandleFunc("/getalltransaction", getAllTransactions(service)).Methods(http.MethodGet)
 	authRoute.HandleFunc("/getonetransaction", getTransaction(service)).Methods(http.MethodGet)
+	authRoute.HandleFunc("/gettransactionbyid", getTransactionById(service)).Methods(http.MethodGet)
 
 	//Budget
 	authRoute.HandleFunc("/addbudget", addBudget(service)).Methods(http.MethodPost)
@@ -37,6 +39,7 @@ func RegisteredRoutes(router *mux.Router, service app.Service) {
 	authRoute.HandleFunc("/pendingbudget", pendingBudget(service)).Methods(http.MethodGet)
 	authRoute.HandleFunc("/deletebudget", deleteBudget(service)).Methods(http.MethodDelete)
 	authRoute.HandleFunc("/updatebudget", updateBudget(service)).Methods(http.MethodPut)
+	authRoute.HandleFunc("/getbudgetbyid", getBudgetById(service)).Methods(http.MethodGet)
 
 	authRoute.HandleFunc("/from-to", getTransactionByDate(service)).Methods(http.MethodGet)
 }
