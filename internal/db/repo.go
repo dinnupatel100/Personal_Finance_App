@@ -21,6 +21,8 @@ type Storer interface {
 
 	AddCategory(domain.Category) error
 	GetAllCategory() ([]domain.Category, error)
+	GetCategoryById(id int64) (*domain.Category, error)
+	DeleteCategory(c domain.Category) error
 
 	AddBudget(budget domain.Budget) error
 	GetAllBudgets() ([]domain.Budget, error)
@@ -601,4 +603,49 @@ func (s *store) GetAllCategory() ([]domain.Category, error) {
 	}
 
 	return categories, nil
+}
+
+
+func (s *store) GetCategoryById(id int64) (*domain.Category, error) {
+	query := "SELECT * FROM category WHERE id = ?"
+	row := s.db.QueryRow(query, id)
+
+	var category domain.Category
+
+	err := row.Scan(&category.ID , &category.CategoryName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New(NoResourseFound)
+		}
+		return nil, err
+	}
+
+	return &category, nil
+}
+
+
+func (s *store) DeleteCategory(c domain.Category) error {
+	query := "DELETE FROM category WHERE id = ?"
+	stmt, err := s.db.Prepare(query)
+
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	result, err := stmt.Exec(c.ID)
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return errors.New(NoResourseFound)
+	}
+	return nil
 }
