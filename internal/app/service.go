@@ -172,3 +172,18 @@ func (s *service) GetTransactionByDate(startDate, endDate time.Time) ([]domain.T
 func (s *service) GetAllCategory() ([]domain.Category, error) {
 	return s.store.GetAllCategory()
 }
+
+
+func (s *service) GetCategoryById(id int64) (*domain.Category, error) {
+	return s.store.GetCategoryById(id)
+}
+
+
+func (s *service) DeleteCategory(c Category) error {
+	deleteCategory := domain.Category{
+		ID:            c.ID,
+		CategoryName:   c.CategoryName,
+	}
+
+	return s.store.DeleteCategory(deleteCategory)
+}
